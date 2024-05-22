@@ -1,16 +1,21 @@
 package com.rnfs;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.util.SparseArray;
 import android.media.MediaScannerConnection;
+import android.webkit.MimeTypeMap;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -133,6 +138,37 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return stream;
   }
 
+  private void writeFileUsingMediaStore(String filepath, String base64Content, Promise promise) {
+    try {
+      byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
+      // 从文件名中提取文件扩展名
+      String extension = MimeTypeMap.getFileExtensionFromUrl(filepath);
+      String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension.toLowerCase());
+      ContentValues contentValues = new ContentValues();
+      contentValues.put(MediaStore.Downloads.DISPLAY_NAME, filepath.substring(filepath.lastIndexOf('/') + 1));
+      contentValues.put(MediaStore.Downloads.MIME_TYPE, mimeType);
+      ContentResolver resolver = getReactApplicationContext().getContentResolver();
+      Uri uri = null;
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
+      }
+      if (uri != null) {
+        try (OutputStream outputStream = resolver.openOutputStream(uri)) {
+          outputStream.write(bytes);
+          outputStream.close();
+          promise.resolve(null);
+        } catch (IOException e) {
+          e.printStackTrace();
+          promise.reject(e);
+        }
+      } else {
+        promise.reject("URI is null");
+      }
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      promise.reject(ex);
+    }
+  }
   private static byte[] getInputStreamBytes(InputStream inputStream) throws IOException {
     byte[] bytesResult;
     ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
@@ -153,19 +189,25 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     return bytesResult;
   }
 
-  @ReactMethod
-  public void writeFile(String filepath, String base64Content, ReadableMap options, Promise promise) {
+  private void writeFileUsingOutputStream(String filepath, String base64Content, Promise promise) {
     try {
       byte[] bytes = Base64.decode(base64Content, Base64.DEFAULT);
-
       OutputStream outputStream = getOutputStream(filepath, false);
       outputStream.write(bytes);
       outputStream.close();
-
       promise.resolve(null);
     } catch (Exception ex) {
       ex.printStackTrace();
-      reject(promise, filepath, ex);
+      promise.reject(ex);
+    }
+  }
+
+  @ReactMethod
+  public void writeFile(String filepath, String base64Content, ReadableMap options, Promise promise) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+      writeFileUsingMediaStore(filepath, base64Content, promise);
+    } else {
+      writeFileUsingOutputStream(filepath, base64Content, promise);
     }
   }
 
