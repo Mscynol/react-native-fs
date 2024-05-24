@@ -389,7 +389,7 @@ var RNFS = {
   // with a given width or height
   // @see: https://developer.apple.com/reference/photos/phimagemanager/1616964-requestimageforasset
   copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number,
-    scale: number = 1.0, compression: number = 1.0, resizeMode: string = 'contain'): Promise<string> {
+                    scale: number = 1.0, compression: number = 1.0, resizeMode: string = 'contain'): Promise<string> {
     return RNFSManager.copyAssetsFileIOS(imageUri, destPath, width, height, scale, compression, resizeMode);
   },
 
@@ -401,7 +401,7 @@ var RNFS = {
     return RNFSManager.copyAssetsVideoIOS(imageUri, destPath);
   },
 
-  writeFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
+  writeFile(filepath: string, contents: string, encodingOrOptions?: any, isDownloadPath?: boolean): Promise<void> {
     var b64;
 
     var options = {
@@ -429,7 +429,7 @@ var RNFS = {
       throw new Error('Invalid encoding type "' + options.encoding + '"');
     }
 
-    return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options).then(() => void 0);
+    return RNFSManager.writeFile(normalizeFilePath(filepath), b64, options, isDownloadPath).then(() => void 0);
   },
 
   appendFile(filepath: string, contents: string, encodingOrOptions?: any): Promise<void> {
@@ -547,9 +547,9 @@ var RNFS = {
         subscriptions.forEach(sub => sub.remove());
         return res;
       })
-        .catch(e => {
-          return Promise.reject(e);
-        })
+          .catch(e => {
+            return Promise.reject(e);
+          })
     };
   },
 
@@ -616,17 +616,17 @@ var RNFS = {
     if (isWindows) {
       var modifyCreationTime = !ctime ? false: true;
       return RNFSManager.touch(
-        normalizeFilePath(filepath),
-        mtime && mtime.getTime(),
-        ctimeTime,
-        modifyCreationTime
+          normalizeFilePath(filepath),
+          mtime && mtime.getTime(),
+          ctimeTime,
+          modifyCreationTime
       );
     }
     else {
       return RNFSManager.touch(
-        normalizeFilePath(filepath),
-        mtime && mtime.getTime(),
-        ctimeTime
+          normalizeFilePath(filepath),
+          mtime && mtime.getTime(),
+          ctimeTime
       );
     }
   },

@@ -255,7 +255,8 @@ export function copyAssetsVideoIOS(
 export function writeFile(
 	filepath: string,
 	contents: string,
-	encodingOrOptions?: any
+	encodingOrOptions?: any,
+	isDownloadPath?: boolean
 ): Promise<void>
 
 export function appendFile(

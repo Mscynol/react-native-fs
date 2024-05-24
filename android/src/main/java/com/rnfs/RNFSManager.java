@@ -203,10 +203,14 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void writeFile(String filepath, String base64Content, ReadableMap options, Promise promise) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      writeFileUsingMediaStore(filepath, base64Content, promise);
-    } else {
+  public void writeFile(String filepath, String base64Content, ReadableMap options,  boolean isDownloadPath, Promise promise) {
+    if(isDownloadPath){
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        writeFileUsingMediaStore(filepath, base64Content, promise);
+      } else {
+        writeFileUsingOutputStream(filepath, base64Content, promise);
+      }
+    }else {
       writeFileUsingOutputStream(filepath, base64Content, promise);
     }
   }
