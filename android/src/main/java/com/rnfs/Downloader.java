@@ -9,6 +9,11 @@ import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.Context;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import android.os.AsyncTask;
@@ -16,6 +21,13 @@ import android.os.AsyncTask;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 
 public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult> {
+
+  private Context context;
+
+  // 构造函数，用于传递 Context
+  public Downloader(Context context) {
+    this.context = context;
+  }
   private DownloadParams mParam;
   private AtomicBoolean mAbort = new AtomicBoolean(false);
   DownloadResult res;
@@ -43,6 +55,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
     InputStream input = null;
     OutputStream output = null;
     HttpURLConnection connection = null;
+    Uri uri = null;
 
     try {
       connection = (HttpURLConnection)param.src.openConnection();
@@ -102,7 +115,20 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         }
 
         input = new BufferedInputStream(connection.getInputStream(), 8 * 1024);
-        output = new FileOutputStream(param.dest);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+          ContentValues contentValues = new ContentValues();
+          contentValues.put(MediaStore.Downloads.DISPLAY_NAME, param.dest.getName());
+          contentValues.put(MediaStore.Downloads.MIME_TYPE, connection.getContentType());
+          ContentResolver resolver = context.getContentResolver();
+          uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
+          if (uri != null) {
+            output = resolver.openOutputStream(uri);
+          } else {
+            throw new Exception("Failed to create MediaStore entry");
+          }
+        } else {
+          output = new FileOutputStream(param.dest);
+        }
 
         byte data[] = new byte[8 * 1024];
         long total = 0;

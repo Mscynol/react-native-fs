@@ -817,7 +817,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         };
       }
 
-      Downloader downloader = new Downloader();
+      Downloader downloader = new Downloader(reactContext.getApplicationContext());
 
       downloader.execute(params);
 
