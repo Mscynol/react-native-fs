@@ -29,4 +29,7 @@ public class DownloadParams {
   public OnTaskCompleted onTaskCompleted;
   public OnDownloadBegin onDownloadBegin;
   public OnDownloadProgress onDownloadProgress;
+  // true: Android 10+ 用 MediaStore 写系统下载目录（原有行为，兼容下载功能）
+  // false: 直接 FileOutputStream 写 toFile（预览场景，文件需落盘到指定路径供预览）
+  public boolean useMediaStore = true;
 }

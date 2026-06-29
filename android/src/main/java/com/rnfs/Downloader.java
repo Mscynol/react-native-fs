@@ -115,7 +115,9 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         }
 
         input = new BufferedInputStream(connection.getInputStream(), 8 * 1024);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+        // useMediaStore=true: Android 10+ 用 MediaStore 写系统下载目录（原有行为，兼容下载功能）
+        // useMediaStore=false: 直接 FileOutputStream 写 toFile（预览场景，文件需落盘到指定路径供预览）
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q && param.useMediaStore) {
           ContentValues contentValues = new ContentValues();
           contentValues.put(MediaStore.Downloads.DISPLAY_NAME, param.dest.getName());
           contentValues.put(MediaStore.Downloads.MIME_TYPE, connection.getContentType());

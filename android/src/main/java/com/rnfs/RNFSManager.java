@@ -765,6 +765,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       params.progressDivider = progressDivider;
       params.readTimeout = readTimeout;
       params.connectionTimeout = connectionTimeout;
+      params.useMediaStore = options.hasKey("useMediaStore") ? options.getBoolean("useMediaStore") : true;
 
       params.onTaskCompleted = new DownloadParams.OnTaskCompleted() {
         public void onTaskCompleted(DownloadResult res) {

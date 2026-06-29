@@ -539,6 +539,7 @@ var RNFS = {
       hasBeginCallback: options.begin instanceof Function,
       hasProgressCallback: options.progress instanceof Function,
       hasResumableCallback: options.resumable instanceof Function,
+      useMediaStore: options.useMediaStore !== false, // 默认 true 保持原有 MediaStore 行为；预览场景传 false 直接写 toFile
     };
 
     return {
